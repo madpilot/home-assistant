@@ -126,36 +126,33 @@ class PTVSensor(Entity):
         """Return other details about the sensor state."""
         attrs = {}
         if self._data["route_type"] == 0:
-            attrs['Type'] = "Train"
+            attrs['type'] = "train"
         elif self._data["route_type"] == 1:
-            attrs['Type'] = "Tram"
+            attrs['type'] = "tram"
         elif self._data["route_type"] == 2:
-            attrs['Type'] = "Bus"
+            attrs['type'] = "tus"
         elif self._data["route_type"] == 3:
-            attrs['Type'] = "V/Line Train"
+            attrs['type'] = "vLine_train"
         elif self._data["route_type"] == 4:
-            attrs['Type'] = "Night Bus"
+            attrs['type'] = "night_bus"
 
-        attrs['Stop Name'] = self._data["stop_name"].strip()
-        attrs['Destination'] = self._direction['direction_name']
-        attrs['Suburb'] = self._data["stop_suburb"]
-        attrs['Latitude'] = self._data["stop_latitude"]
-        attrs['Longitude'] = self._data["stop_longitude"]
+        attrs['stop_name'] = self._data["stop_name"].strip()
+        attrs['destination'] = self._direction['direction_name']
+        attrs['suburb'] = self._data["stop_suburb"]
+        attrs['latitude'] = self._data["stop_latitude"]
+        attrs['longitude'] = self._data["stop_longitude"]
 
         future_departures = self.future_departures()
         if len(future_departures) > 0:
             next_departure = future_departures[0]
             departs_in_minutes = self.departs_in(next_departure)
-            if departs_in_minutes <= 0:
-                attrs['Due'] = "Now"
-            else:
-                attrs['Due'] = "in " + str(departs_in_minutes) + " minutes"
 
-            attrs['Next Departure'] = self.departure_time(next_departure)
+            attrs['due'] = str(departs_in_minutes)
+            attrs['next_departure'] = self.departure_time(next_departure)
 
             if self._data["route_type"] == 0 or self._data["route_type"] == 3:
-                attrs['Platform Number'] = next_departure['platform_number']
-                attrs['At Platform'] = next_departure['at_platform']
+                attrs['platform_number'] = next_departure['platform_number']
+                attrs['at_platform'] = next_departure['at_platform']
 
         return attrs
 
