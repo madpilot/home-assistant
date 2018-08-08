@@ -63,9 +63,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     return True
 
 class PTVSensor(Entity):
-    BUS_ICON = 'mdi:bus'
-    TRAM_ICON = 'mdi:tram'
-    TRAIN_ICON = 'mdi:train'
+    BUS_ICON = "mdi:bus"
+    TRAM_ICON = "mdi:tram"
+    TRAIN_ICON = "mdi:train"
 
     def __init__(self, client, data, direction):
         self._client = client
@@ -96,6 +96,11 @@ class PTVSensor(Entity):
         return self._data["stop_name"].strip() + " - " + self._direction["direction_name"].strip()
 
     @property
+    def unique_id(self):
+        """Return the unique ID."""
+        return "ptv_stop_" + str(self._data["stop_id"]) + "_dir_" + str(self._direction["direction_id"])
+
+    @property
     def state(self):
         future_departures = self.future_departures()
         if len(future_departures) > 0:
@@ -110,49 +115,49 @@ class PTVSensor(Entity):
 
     @property
     def icon(self):
-        if self._data["route_type"] == 0:
+        if self._data["route_type"] == pyptv3.RouteTypes.TRAIN:
             return self.TRAIN_ICON
-        elif self._data["route_type"] == 1:
+        elif self._data["route_type"] == pyptv3.RouteTypes.TRAM:
             return self.TRAM_ICON
-        elif self._data["route_type"] == 2:
+        elif self._data["route_type"] == pyptv3.RouteTypes.BUS:
             return self.BUS_ICON
-        elif self._data["route_type"] == 3:
+        elif self._data["route_type"] == pyptv3.RouteTypes.VLINE_TRAIN:
             return self.TRAIN_ICON
-        elif self._data["route_type"] == 4:
+        elif self._data["route_type"] == pyptv3.RouteTypes.NIGHT_BUS:
             return self.BUS_ICON
 
     @property
     def device_state_attributes(self):
         """Return other details about the sensor state."""
         attrs = {}
-        if self._data["route_type"] == 0:
-            attrs['type'] = "train"
-        elif self._data["route_type"] == 1:
-            attrs['type'] = "tram"
-        elif self._data["route_type"] == 2:
-            attrs['type'] = "tus"
-        elif self._data["route_type"] == 3:
-            attrs['type'] = "vLine_train"
-        elif self._data["route_type"] == 4:
-            attrs['type'] = "night_bus"
+        if self._data["route_type"] == pyptv3.RouteTypes.TRAIN:
+            attrs["type"] = "train"
+        elif self._data["route_type"] == pyptv3.RouteTypes.TRAM:
+            attrs["type"] = "tram"
+        elif self._data["route_type"] == pyptv3.RouteTypes.BUS:
+            attrs["type"] = "bus"
+        elif self._data["route_type"] == pyptv3.RouteTypes.VLINE_TRAIN:
+            attrs["type"] = "vLine_train"
+        elif self._data["route_type"] == pyptv3.RouteTypes.NIGHT_BUS:
+            attrs["type"] = "night_bus"
 
-        attrs['stop_name'] = self._data["stop_name"].strip()
-        attrs['destination'] = self._direction['direction_name']
-        attrs['suburb'] = self._data["stop_suburb"]
-        attrs['latitude'] = self._data["stop_latitude"]
-        attrs['longitude'] = self._data["stop_longitude"]
+        attrs["stop_name"] = self._data["stop_name"].strip()
+        attrs["destination"] = self._direction["direction_name"]
+        attrs["suburb"] = self._data["stop_suburb"]
+        attrs["latitude"] = self._data["stop_latitude"]
+        attrs["longitude"] = self._data["stop_longitude"]
 
         future_departures = self.future_departures()
         if len(future_departures) > 0:
             next_departure = future_departures[0]
             departs_in_minutes = self.departs_in(next_departure)
 
-            attrs['due'] = str(departs_in_minutes)
-            attrs['next_departure'] = self.departure_time(next_departure)
+            attrs["due"] = str(departs_in_minutes)
+            attrs["next_departure"] = self.departure_time(next_departure)
 
-            if self._data["route_type"] == 0 or self._data["route_type"] == 3:
-                attrs['platform_number'] = next_departure['platform_number']
-                attrs['at_platform'] = next_departure['at_platform']
+            if self._data["route_type"] == pyptv3.RouteTypes.TRAIN or self._data["route_type"] == pyptv3.RouteTypes.VLINE_TRAIN:
+                attrs["platform_number"] = next_departure["platform_number"]
+                attrs["at_platform"] = next_departure["at_platform"]
 
         return attrs
 
